@@ -85,6 +85,7 @@ const AdminContextProvider = ({ children }) => {
   };
 
   const getDashData = async () => {
+    console.log("Sending token:", aToken);
     try {
       const { data } = await axios.get(backendUrl + "/api/admin/dashboard", {
         headers: { atoken: aToken },

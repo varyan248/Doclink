@@ -1,7 +1,7 @@
-import jwt from "jsonwebtoken"
+import jwt from "jsonwebtoken";
 
 export const authAdmin = (req, res, next) => {
-  const atoken = req.headers['atoken'];
+  const atoken = req.headers["atoken"];
 
   if (!atoken) {
     console.log("Headers received:", atoken); // logs undefined
@@ -19,4 +19,3 @@ export const authAdmin = (req, res, next) => {
     return res.status(401).json({ success: false, message: "Invalid token" });
   }
 };
-

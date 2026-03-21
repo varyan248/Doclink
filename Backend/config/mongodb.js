@@ -1,26 +1,16 @@
-// import mongoose, { mongo } from "mongoose";
-
-// const connetDb = async() => {
-
-//     mongoose.connection.on('connected',() => console.log("Database connected"))
-//    await mongoose.connect(`${process.env.MONGODB_URI}/DocLink`)
-// }
-
-// export default connetDb
 
 import mongoose from "mongoose";
-
-const connectDb = async () => {
+const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI, {
-      dbName: "DocLink",
+    await mongoose.connect("mongodb://127.0.0.1:27017/Doclink", {
+      bufferCommands: false, // Disable buffering to see real errors immediately
+      serverSelectionTimeoutMS: 5000, // Fail after 5s instead of 30s
+      family: 4, // Force IPv4 (important for local ISPs in Ahmedabad)
     });
-
     console.log("✅ MongoDB Connected Successfully");
   } catch (error) {
     console.error("❌ MongoDB Connection Failed:", error.message);
-    process.exit(1); // Stop server if DB fails
+    process.exit(1);
   }
 };
-
-export default connectDb;
+export default connectDB;

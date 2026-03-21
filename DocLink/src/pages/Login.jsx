@@ -5,14 +5,13 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 const Login = () => {
-  const { backendUrl, token, setToken } = useContext(AppContext)
-  const navigate = useNavigate()
+  const { backendUrl, token, setToken } = useContext(AppContext);
+  const navigate = useNavigate();
 
   const [state, setState] = useState("Sign-Up");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-
 
   const onSubmitHandler = async (e) => {
     e.preventDefault();
@@ -43,21 +42,19 @@ const Login = () => {
         }
       }
     } catch (error) {
-      toast.error(error.message);
+      console.error("Full Error Object:", error); // Check your browser console!
+      toast.error(error.response?.data?.message || error.message);
     }
-  }
+  };
 
   useEffect(() => {
     if (token) {
-      navigate('/')
+      navigate("/");
     }
-  }, [token])
+  }, [token]);
 
   return (
-    <form
-      onSubmit={onSubmitHandler}
-      className="min-h-[80vh] flex items-center"
-    >
+    <form onSubmit={onSubmitHandler} className="min-h-[80vh] flex items-center">
       <div className="flex flex-col m-auto gap-3 items-start p-8 min-w-[340px] sm:min-w-96 rounded-xl text-zinc-600 text-sm shadow-lg">
         <p className="text-2xl font-semibold">
           {state === "Sign-Up" ? "Create Account" : "Login"}
