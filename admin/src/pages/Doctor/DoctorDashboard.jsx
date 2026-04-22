@@ -17,6 +17,22 @@ const DoctorDashboard = () => {
     }
   }, [dToken]);
 
+  const getPaymentLabel = (item) => {
+    if (!item.payment) {
+      return { text: 'Pending', color: 'text-yellow-600 bg-yellow-50 border-yellow-300' }
+    }
+    switch (item.paymentMethod) {
+      case 'gpay':
+        return { text: 'GPay', color: 'text-blue-600 bg-blue-50 border-blue-300' }
+      case 'credit_card':
+        return { text: 'Credit Card', color: 'text-purple-600 bg-purple-50 border-purple-300' }
+      case 'debit_card':
+        return { text: 'Debit Card', color: 'text-emerald-600 bg-emerald-50 border-emerald-300' }
+      default:
+        return { text: 'Online', color: 'text-green-600 bg-green-50 border-green-300' }
+    }
+  }
+
   return (
     dashData && (
       <div className="m-5">
@@ -46,7 +62,7 @@ const DoctorDashboard = () => {
               <p className="text-xl font-semibold text-gray-600">
                 {dashData.patients}
               </p>
-              <p className="text-gray-400">patients</p>
+              <p className="text-gray-400">Patients</p>
             </div>
           </div>
         </div>
@@ -56,7 +72,9 @@ const DoctorDashboard = () => {
             <p className="font-semibold">Latest Booking</p>
           </div>
           <div className="pt-4 border-white border-t-0 ">
-            {dashData.latestAppointments.map((item, index) => (
+            {dashData.latestAppointments.map((item, index) => {
+              const paymentInfo = getPaymentLabel(item)
+              return (
               <div
                 className="flex items-center px-6 py-3 gap-3 hover:bg-gray-100 "
                 key={index}
@@ -72,10 +90,14 @@ const DoctorDashboard = () => {
                   </p>
                   <p className="text-gray-600">{item.slotDate}</p>
                 </div>
+                {/* Payment Badge */}
+                <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${paymentInfo.color}`}>
+                  {paymentInfo.text}
+                </span>
                 {item.cancelled ? (
                   <p className="text-red-400 text-xs font-medium"> Cancelled</p>
-                ) : item.isComplete ? (
-                  <p className="text-green-400 text-xs font-medium">
+                ) : item.isCompleted ? (
+                  <p className="text-green-500 text-xs font-medium">
                     Completed
                   </p>
                 ) : (
@@ -95,7 +117,7 @@ const DoctorDashboard = () => {
                   </div>
                 )}
               </div>
-            ))}
+            )})}
           </div>
         </div>
       </div>

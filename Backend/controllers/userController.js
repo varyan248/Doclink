@@ -319,6 +319,87 @@ const veriffyRazorpay = async (req, res) => {
   }
 };
 
+//API to process payment (GPay / Credit Card / Debit Card)
+const processPayment = async (req, res) => {
+  try {
+    const { appointmentId, paymentMethod, paymentDetails } = req.body;
+
+    if (!appointmentId || !paymentMethod) {
+      return res.json({ success: false, message: "Missing payment information" });
+    }
+
+    const validMethods = ['gpay', 'credit_card', 'debit_card'];
+    if (!validMethods.includes(paymentMethod)) {
+      return res.json({ success: false, message: "Invalid payment method" });
+    }
+
+    const appointment = await appointmentModel.findById(appointmentId);
+    if (!appointment) {
+      return res.json({ success: false, message: "Appointment not found" });
+    }
+
+    if (appointment.cancelled) {
+      return res.json({ success: false, message: "Appointment is cancelled" });
+    }
+
+    if (appointment.payment) {
+      return res.json({ success: false, message: "Payment already completed" });
+    }
+
+    // Validate payment details based on method
+    if (paymentMethod === 'gpay') {
+      if (!paymentDetails?.upiId) {
+        return res.json({ success: false, message: "UPI ID is required for GPay" });
+      }
+      // Basic UPI ID validation
+      const upiRegex = /^[\w.\-]+@[\w]+$/;
+      if (!upiRegex.test(paymentDetails.upiId)) {
+        return res.json({ success: false, message: "Invalid UPI ID format" });
+      }
+    }
+
+    if (paymentMethod === 'credit_card' || paymentMethod === 'debit_card') {
+      if (!paymentDetails?.cardNumber || !paymentDetails?.expiry || !paymentDetails?.cvv || !paymentDetails?.cardHolder) {
+        return res.json({ success: false, message: "All card details are required" });
+      }
+      // Basic card number validation (16 digits)
+      const cardNum = paymentDetails.cardNumber.replace(/\s/g, '');
+      if (!/^\d{16}$/.test(cardNum)) {
+        return res.json({ success: false, message: "Invalid card number (must be 16 digits)" });
+      }
+      // CVV validation
+      if (!/^\d{3,4}$/.test(paymentDetails.cvv)) {
+        return res.json({ success: false, message: "Invalid CVV" });
+      }
+      // Expiry validation
+      if (!/^\d{2}\/\d{2}$/.test(paymentDetails.expiry)) {
+        return res.json({ success: false, message: "Invalid expiry date (MM/YY)" });
+      }
+    }
+
+    // Simulate payment processing (in production, this would call a payment gateway)
+    await appointmentModel.findByIdAndUpdate(appointmentId, {
+      payment: true,
+      paymentMethod: paymentMethod
+    });
+
+    const methodNames = {
+      gpay: 'Google Pay',
+      credit_card: 'Credit Card',
+      debit_card: 'Debit Card'
+    };
+
+    res.json({
+      success: true,
+      message: `Payment successful via ${methodNames[paymentMethod]}`
+    });
+
+  } catch (error) {
+    console.log("Payment Error:", error);
+    return res.json({ success: false, message: error.message });
+  }
+};
+
 export {
   registerUser,
   loginUser,
@@ -328,5 +409,6 @@ export {
   listAppointment,
   cancelAppointment,
   paymentRazorPay,
-  veriffyRazorpay
+  veriffyRazorpay,
+  processPayment
 };

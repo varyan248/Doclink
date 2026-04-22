@@ -125,7 +125,6 @@ const loginAdmin = async (req, res) => {
   }
 };
 
-//API to get all doctors for admin panel
 
 // API to get all doctors
 const allDoctors = async (req, res) => {
@@ -139,19 +138,6 @@ const allDoctors = async (req, res) => {
   }
 };
 
-// const allDoctors = async (req, res) => {
-//   try {
-//    const doctors = await doctorModel.find({}).select('-password');
-//   return res.json({ success: true, doctors });
-
-//   } catch (error) {
-//       console.log(error);
-//     return res.status(500).json({
-//       success: false,
-//       message: error.message || "Something went wrong",
-//     });
-//   }
-// };
 
 //API to get all appointments list
 const appointmentsAdmin = async (req, res) => {
@@ -221,16 +207,24 @@ const adminDashboard = async (req, res) => {
     const users = await userModel.find({});
     const appointments = await appointmentModel.find({});
 
+    let earnings = 0;
+    appointments.forEach((item) => {
+      if (item.payment || item.isCompleted) {
+        earnings += Number(item.amount) || 0;
+      }
+    });
+
     const dashData = {
       doctors: doctors.length,
       appointments: appointments.length,
       patients: users.length,
+      earnings,
       latestAppointments: appointments.reverse().slice(0, 5)
     };
 
     res.json({ success: true, dashData });
   } catch (error) {
-    console.log("Cancel Error:", error);
+    console.log("Dashboard Error:", error);
     return res.json({ success: false, message: error.message });
   }
 };

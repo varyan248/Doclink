@@ -29,6 +29,22 @@
         }
       }, [dToken]);
 
+      const getPaymentLabel = (item) => {
+        if (!item.payment) {
+          return { text: 'CASH', color: 'text-yellow-600 bg-yellow-50 border-yellow-300' }
+        }
+        switch (item.paymentMethod) {
+          case 'gpay':
+            return { text: 'GPay', color: 'text-blue-600 bg-blue-50 border-blue-300' }
+          case 'credit_card':
+            return { text: 'Credit Card', color: 'text-purple-600 bg-purple-50 border-purple-300' }
+          case 'debit_card':
+            return { text: 'Debit Card', color: 'text-emerald-600 bg-emerald-50 border-emerald-300' }
+          default:
+            return { text: 'ONLINE', color: 'text-green-600 bg-green-50 border-green-300' }
+        }
+      }
+
       return (
         <div className="w-full max-w-6xl m-5">
           <p className="mb-3 text-lg font-medium">All-Appointments</p>
@@ -43,7 +59,9 @@
               <p>Action</p>
             </div>
 
-            {appointment.map((item, index) => (
+            {appointment.map((item, index) => {
+              const paymentInfo = getPaymentLabel(item)
+              return (
               <div
                 className="flex flex-wrap justify-between max-sm:gap-5 max-sm:text-base sm:grid grid-cols-[0.5fr_2fr_1fr_1fr_3fr_1fr_1fr] gap-1 items-center py-3 px-6 text-gray-500 border-b hover:bg-gray-100"
                 key={index}
@@ -58,9 +76,9 @@
                   <p>{item.userData.name}</p>
                 </div>
                 <div>
-                  <p className="text-xs inline border border-blue-400 px-2 rounded-full ">
-                    {item.payment ? " ONLINE" : "CASH"}
-                  </p>
+                  <span className={`text-xs inline-block px-2.5 py-1 rounded-full border font-medium ${paymentInfo.color}`}>
+                    {paymentInfo.text}
+                  </span>
                 </div>
                 <p className="max-sm:hidden">{calculateAge(item.userData.dob)}</p>
                 <p>
@@ -69,8 +87,8 @@
                 <p>₹{item.amount}</p>
                 {item.cancelled ? (
                   <p className="text-red-400 text-xs font-medium"> Cancelled</p>
-                ) : item.isComplete ? (
-                  <p className="text-green-400 text-xs font-medium">Completed</p>
+                ) : item.isCompleted ? (
+                  <p className="text-green-500 text-xs font-medium">Completed</p>
                 ) : (
                   <div className="flex">
                     <img
@@ -88,7 +106,7 @@
                   </div>
                 )}
               </div>
-            ))}
+            )})}
           </div>
         </div>
       );

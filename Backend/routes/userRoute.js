@@ -10,6 +10,7 @@ import {
   registerUser,
   updateProfile,
   veriffyRazorpay,
+  processPayment,
 } from "../controllers/userController.js";
 import upload from "../middlewares/multer.js";
 
@@ -31,6 +32,8 @@ userRouter.get("/appointments", authUser, listAppointment);
 userRouter.post("/cancel-appointment", authUser, cancelAppointment);
 userRouter.post("/payment-razorpay", authUser, paymentRazorPay);
 userRouter.post("/verify-razorpay", authUser, veriffyRazorpay);
+userRouter.post("/process-payment", authUser, processPayment);
 
 
 export default userRouter;
+
