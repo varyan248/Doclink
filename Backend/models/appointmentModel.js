@@ -49,6 +49,26 @@ const appointmentScehma = new mongoose.Schema({
      isCompleted : {
         type : Boolean,
         default : false
+     },
+     // ── Prescription Fields ──
+     prescription : {
+        advice : {
+            type : String,
+            default : ''
+        },
+        medicines : [{
+            name : { type : String },
+            dosage : { type : String },
+            duration : { type : String }
+        }],
+        notes : {
+            type : String,
+            default : ''
+        },
+        prescribedAt : {
+            type : Date,
+            default : null
+        }
      }
 })
 

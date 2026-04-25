@@ -15,6 +15,10 @@ const MyAppointments = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
 
+  // Prescription view state
+  const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
+  const [prescriptionItem, setPrescriptionItem] = useState(null);
+
   // Card details state
   const [cardNumber, setCardNumber] = useState("");
   const [cardHolder, setCardHolder] = useState("");
@@ -296,6 +300,15 @@ const MyAppointments = () => {
                     Completed
                   </button>
                 )}
+                {/* Prescription Button */}
+                {item.prescription && item.prescription.advice && item.prescription.advice.trim() !== '' && (
+                  <button
+                    onClick={() => { setPrescriptionItem(item); setShowPrescriptionModal(true); }}
+                    className="sm:min-w-48 py-2 border border-teal-500 rounded text-teal-600 hover:bg-teal-50 transition-all duration-300 flex items-center justify-center gap-2 text-sm"
+                  >
+                    📋 View Prescription
+                  </button>
+                )}
               </div>
             </div>
           );
@@ -537,6 +550,96 @@ const MyAppointments = () => {
                     <p className="text-xs text-gray-400">Secured with 256-bit SSL encryption</p>
                   </div>
                 </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============ PRESCRIPTION VIEW MODAL ============ */}
+      {showPrescriptionModal && prescriptionItem && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto relative"
+            style={{ animation: 'paymentModalIn 0.35s cubic-bezier(0.16,1,0.3,1)' }}
+          >
+            {/* Header */}
+            <div className="relative p-6 pb-4 border-b border-gray-100">
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-green-400 via-teal-500 to-blue-500 rounded-t-2xl"></div>
+              <button
+                onClick={() => { setShowPrescriptionModal(false); setPrescriptionItem(null); }}
+                className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+
+              <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                📋 Your Prescription
+              </h2>
+
+              {/* Doctor Info */}
+              <div className="mt-4 p-3 bg-gradient-to-r from-green-50 to-teal-50 rounded-xl flex items-center gap-3">
+                <img src={prescriptionItem.docData?.image} alt="" className="w-12 h-12 rounded-full object-cover border-2 border-white shadow" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-800 truncate">Dr. {prescriptionItem.docData?.name}</p>
+                  <p className="text-xs text-gray-500">{prescriptionItem.docData?.speciality} • {prescriptionItem.slotDate}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Prescription Body */}
+            <div className="p-6 space-y-5">
+              {/* Advice */}
+              <div>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Doctor's Advice</p>
+                <p className="text-sm text-gray-700 bg-blue-50 p-3 rounded-xl border border-blue-100">
+                  {prescriptionItem.prescription?.advice || 'No advice given'}
+                </p>
+              </div>
+
+              {/* Medicines */}
+              {prescriptionItem.prescription?.medicines?.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Medicines</p>
+                  <div className="space-y-2">
+                    {prescriptionItem.prescription.medicines.map((med, i) => (
+                      <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                        <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 font-bold text-xs">
+                          {i + 1}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-800">{med.name}</p>
+                          <p className="text-xs text-gray-500">
+                            {med.dosage && `Dosage: ${med.dosage}`}
+                            {med.dosage && med.duration && ' • '}
+                            {med.duration && `Duration: ${med.duration}`}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Notes */}
+              {prescriptionItem.prescription?.notes && (
+                <div>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Additional Notes</p>
+                  <p className="text-sm text-gray-700 bg-yellow-50 p-3 rounded-xl border border-yellow-100">
+                    {prescriptionItem.prescription.notes}
+                  </p>
+                </div>
+              )}
+
+              {prescriptionItem.prescription?.prescribedAt && (
+                <p className="text-xs text-gray-400 text-center">
+                  Prescribed on: {new Date(prescriptionItem.prescription.prescribedAt).toLocaleString()}
+                </p>
               )}
             </div>
           </div>

@@ -38,7 +38,7 @@ export const loginDoctor = async (req, res) => {
     const doctor = await doctorModel.findOne({ email });
 
     if (!doctor) {
-      return res.json({ success: false, message: "Invalid credantials" });
+      return res.json({ success: false, message: "Invalid credentials" });
     }
 
     const isMatch = await bcrypt.compare(password, doctor.password);
@@ -49,7 +49,7 @@ export const loginDoctor = async (req, res) => {
 
       res.json({ success: true, token });
     } else {
-      res.json({ success: false, message: "Invalid credantials" });
+      res.json({ success: false, message: "Invalid credentials" });
     }
   } catch (error) {
     console.log(error);
@@ -57,26 +57,11 @@ export const loginDoctor = async (req, res) => {
   }
 };
 
-//API to get doctor appointments for doctor pannel
-// export const appointmentsDoctor = async (req, res) => {
-//   try {
-
-//     const id = req.user;
-
-//     const appointments = await appointmentModel.find({docId})
-
-//     res.json({success: true, appointments})
-
-//   } catch (error) {
-//      console.log(error);
-//     return res.json({ success: false, message: error.message });
-//   }
-// }
+// API to get appointments for the logged-in doctor ONLY
 export const appointmentsDoctor = async (req, res) => {
   try {
-    const { id } = req.user; // get doctor id from middleware
-    const appointments = await appointmentModel.find({ docId: id }); // match docId field in DB
-   //const appointments = await appointmentModel.find({ docId: new mongoose.Types.ObjectId(id) });
+    const { id } = req.user; // get doctor id from auth middleware token
+    const appointments = await appointmentModel.find({ docId: id });
     res.json({ success: true, appointments });
   } catch (error) {
     console.log(error);
@@ -87,46 +72,103 @@ export const appointmentsDoctor = async (req, res) => {
 //API to mark appointment completed for doctor panel
 export const appointmentComplete = async (req, res) => {
   try {
-    const { appointmentId, docId } = req.body;
+    const { appointmentId } = req.body;
+    const docId = req.user.id; // get doctor id from auth middleware
 
     const appointmentData = await appointmentModel.findById(appointmentId);
 
-    if (appointmentData && appointmentData.docId.toString() === docId) {
-      await appointmentModel.findByIdAndUpdate(appointmentId, {
-        cancelled: true,
-      });
-      return res.json({ success: true, message: "Appointment completed" });
-    } else {
-      return res.json({ success: false, message: "Mark Failed" });
+    if (!appointmentData) {
+      return res.json({ success: false, message: "Appointment not found" });
     }
+
+    // Verify this appointment belongs to the logged-in doctor
+    if (appointmentData.docId.toString() !== docId.toString()) {
+      return res.json({ success: false, message: "Unauthorized: Not your appointment" });
+    }
+
+    await appointmentModel.findByIdAndUpdate(appointmentId, {
+      isCompleted: true,
+    });
+    return res.json({ success: true, message: "Appointment completed" });
   } catch (error) {
     console.log(error);
     return res.json({ success: false, message: error.message });
   }
 };
 
-//API to cancel appointment completed for doctor panel
+//API to cancel appointment for doctor panel
 export const appointmentCancel = async (req, res) => {
   try {
-    const { appointmentId, docId } = req.body;
+    const { appointmentId } = req.body;
+    const docId = req.user.id; // get doctor id from auth middleware
 
     const appointmentData = await appointmentModel.findById(appointmentId);
 
-    if (appointmentData && appointmentId.docId === docId) {
-      await appointmentModel.findByIdAndUpdate(appointmentId, {
-        cancelled: true,
-      });
-      return res.json({ success: true, message: "Appointment Cancelled" });
-    } else {
-      return res.json({ success: false, message: "cancelation Failed" });
+    if (!appointmentData) {
+      return res.json({ success: false, message: "Appointment not found" });
     }
+
+    // Verify this appointment belongs to the logged-in doctor
+    if (appointmentData.docId.toString() !== docId.toString()) {
+      return res.json({ success: false, message: "Unauthorized: Not your appointment" });
+    }
+
+    await appointmentModel.findByIdAndUpdate(appointmentId, {
+      cancelled: true,
+    });
+    return res.json({ success: true, message: "Appointment Cancelled" });
   } catch (error) {
     console.log(error);
     return res.json({ success: false, message: error.message });
   }
 };
 
-//API to get dashboard data for dovtor panel
+//API to add prescription to an appointment
+export const addPrescription = async (req, res) => {
+  try {
+    const { appointmentId, advice, medicines, notes } = req.body;
+    const docId = req.user.id;
+
+    if (!appointmentId) {
+      return res.json({ success: false, message: "Appointment ID is required" });
+    }
+
+    const appointmentData = await appointmentModel.findById(appointmentId);
+
+    if (!appointmentData) {
+      return res.json({ success: false, message: "Appointment not found" });
+    }
+
+    // Verify this appointment belongs to the logged-in doctor
+    if (appointmentData.docId.toString() !== docId.toString()) {
+      return res.json({ success: false, message: "Unauthorized: Not your appointment" });
+    }
+
+    if (appointmentData.cancelled) {
+      return res.json({ success: false, message: "Cannot prescribe for cancelled appointment" });
+    }
+
+    // Build prescription object
+    const prescription = {
+      advice: advice || '',
+      medicines: Array.isArray(medicines) ? medicines : [],
+      notes: notes || '',
+      prescribedAt: new Date()
+    };
+
+    await appointmentModel.findByIdAndUpdate(appointmentId, {
+      prescription,
+      isCompleted: true  // Auto-mark as completed when prescription is given
+    });
+
+    return res.json({ success: true, message: "Prescription added successfully" });
+  } catch (error) {
+    console.log("Prescription Error:", error);
+    return res.json({ success: false, message: error.message });
+  }
+};
+
+//API to get dashboard data for doctor panel
 export const doctorDashboard = async (req, res) => {
   try {
     const { id: docId } = req.user;
@@ -134,14 +176,14 @@ export const doctorDashboard = async (req, res) => {
 
     let earnings = 0;
 
-    appointments.map((item) => {
+    appointments.forEach((item) => {
       if (item.isCompleted || item.payment) {
-        earnings += item.amount;
+        earnings += Number(item.amount) || 0;
       }
     });
 
     let patients = [];
-    appointments.map((item) => {
+    appointments.forEach((item) => {
       if (!patients.includes(item.userId)) {
         patients.push(item.userId);
       }
@@ -151,7 +193,7 @@ export const doctorDashboard = async (req, res) => {
       earnings,
       appointments: appointments.length,
       patients: patients.length,
-      latestAppointments: appointments.reverse().slice(0, 5),
+      latestAppointments: appointments.reverse().slice(0, 15),
     };
 
     res.json({ success: true, dashData });
@@ -196,6 +238,7 @@ export default {
   appointmentsDoctor,
   appointmentComplete,
   appointmentCancel,
+  addPrescription,
   doctorDashboard,
   updateProfile,
   doctorProfile,
