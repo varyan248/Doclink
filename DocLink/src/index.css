@@ -1,6 +1,62 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
 @import "tailwindcss";
 
+body {
+    background: radial-gradient(circle at top left, #eff6ff, transparent 40%),
+                radial-gradient(circle at bottom right, #f5f3ff, transparent 40%),
+                #fafafa;
+    background-attachment: fixed;
+    min-height: 100vh;
+    transition: background 0.4s ease-in-out, color 0.4s ease-in-out;
+}
+
+body.dark-theme {
+    background: radial-gradient(circle at top left, #1a1a2e, transparent 40%),
+                radial-gradient(circle at bottom right, #16213e, transparent 40%),
+                #0f0f15;
+    color: #e2e8f0;
+}
+
+body.dark-theme .bg-white, 
+body.dark-theme .bg-white\/80, 
+body.dark-theme .bg-white\/90, 
+body.dark-theme .bg-white\/95 {
+    background-color: rgba(30, 30, 40, 0.85) !important;
+    border-color: #334155 !important;
+}
+
+body.dark-theme .bg-blue-50 {
+    background-color: #1e293b !important;
+}
+
+body.dark-theme .text-gray-800, 
+body.dark-theme .text-gray-700, 
+body.dark-theme .text-gray-600, 
+body.dark-theme .text-gray-500 {
+    color: #cbd5e1 !important;
+}
+
+body.dark-theme .border, 
+body.dark-theme .border-b, 
+body.dark-theme .border-gray-100 {
+    border-color: #334155 !important;
+}
+
+body.dark-theme h1, 
+body.dark-theme h2, 
+body.dark-theme p {
+    color: #f1f5f9 !important;
+}
+
+body.dark-theme .bg-gradient-to-r.from-blue-600.to-indigo-600 {
+    color: #ffffff !important;
+}
+
+body.dark-theme .hover\:bg-gray-50:hover, 
+body.dark-theme .hover\:bg-gray-100:hover {
+    background-color: #334155 !important;
+}
+
 *{
     font-family: outfit;
 }
