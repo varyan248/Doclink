@@ -25,10 +25,10 @@ app.use(express.urlencoded({ extended: true }));
 
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'], // Allows both just in case
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'atoken', 'dtoken', 'Authorization', 'token'],
-  credentials: true
+  credentials: false
 }));
 
 //Api endpoint
