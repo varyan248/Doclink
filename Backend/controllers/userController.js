@@ -265,10 +265,20 @@ const cancelAppointment = async (req, res) => {
   }
 };
 
-const razorpayInstance = new razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+// Lazy-initialize Razorpay so it doesn't crash if env vars are missing at import time
+let razorpayInstance = null;
+const getRazorpayInstance = () => {
+  if (!razorpayInstance) {
+    if (!process.env.RAZORPAY_KEY_ID) {
+      throw new Error("RAZORPAY_KEY_ID is not set in environment variables");
+    }
+    razorpayInstance = new razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
+  }
+  return razorpayInstance;
+};
 
 //API to make payment of appointment using razorpay
 const paymentRazorPay = async (req, res) => {
@@ -291,7 +301,7 @@ const paymentRazorPay = async (req, res) => {
     };
 
     //creationn of an order
-    const order = await razorpayInstance.orders.create(options);
+    const order = await getRazorpayInstance().orders.create(options);
 
     res.json({ success: true, order });
   } catch (error) {
@@ -304,7 +314,7 @@ const paymentRazorPay = async (req, res) => {
 const veriffyRazorpay = async (req, res) => {
   try {
     const {razorpay_order_id} = req.body;
-    const orderInfo = await  razorpayInstance.orders.fetch(razorpay_order_id)
+    const orderInfo = await getRazorpayInstance().orders.fetch(razorpay_order_id)
     console.log(orderInfo)
     if (orderInfo.status === 'paid') {
       await appointmentModel.findByIdAndUpdate(orderInfo.receipt, {payment : true})
