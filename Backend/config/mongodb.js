@@ -1,17 +1,26 @@
 
 import mongoose from "mongoose";
+
 const connectDB = async () => {
   try {
-    const mongoURI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/Doclink";
-    await mongoose.connect(mongoURI, {
-      bufferCommands: false, // Disable buffering to see real errors immediately
-      serverSelectionTimeoutMS: 5000, // Fail after 5s instead of 30s
-      family: 4, // Force IPv4 (important for local ISPs in Ahmedabad)
-    });
+    const mongoURI = process.env.MONGODB_URI;
+
+    if (!mongoURI) {
+      console.error("❌ MONGODB_URI is not defined in environment variables!");
+      process.exit(1);
+    }
+
+    // Debug: show masked URI so we can verify the right one is being used
+    const maskedURI = mongoURI.replace(/:\/\/([^:]+):([^@]+)@/, '://$1:****@');
+    console.log("🔗 Connecting to MongoDB:", maskedURI);
+
+    await mongoose.connect(mongoURI);
+
     console.log("✅ MongoDB Connected Successfully");
   } catch (error) {
     console.error("❌ MongoDB Connection Failed:", error.message);
     process.exit(1);
   }
 };
+
 export default connectDB;
