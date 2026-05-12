@@ -9,7 +9,7 @@ import razorpay from "razorpay";
 
 //API to register user
 const registerUser = async (req, res) => {
-  try {
+  try { 
     const { name, email, password } = req.body;
     if (!name || !email || !password) {
       return res.json({ success: false, message: "Missing credantials" });
@@ -50,7 +50,6 @@ const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await userModel.findOne({ email });
-
     if (!user) {
       return res.json({ success: false, message: "User does not exist" });
     }
